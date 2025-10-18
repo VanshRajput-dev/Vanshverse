@@ -13,8 +13,3 @@ It generates new poems that reflect my writing tone, rhythm, and emotion.
 - Python
 - Flask (Web Server)
 - PyTorch + Transformers
-
-## ⚙️ Usage
-```bash
-cd app
-python main.py
