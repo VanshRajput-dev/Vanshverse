@@ -1,0 +1,13 @@
+# Core ML + Transformers
+torch
+transformers==4.44.0
+datasets
+sentencepiece
+
+# Flask web app
+flask
+
+# Optional but useful for debugging and notebooks
+tqdm
+ipykernel
+04560

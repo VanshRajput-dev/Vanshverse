@@ -1,0 +1,83 @@
+# ===============================
+# 🧠 VanshVerse Project GitIgnore
+# ===============================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pkl
+*.log
+*.tmp
+
+# --- Virtual Environments ---
+venv/
+env/
+.vscode/
+.vs/
+.idea/
+.vanshverse/
+.vscode/
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/extensions.json
+
+# --- Anaconda ---
+*.conda
+*.ipynb_checkpoints/
+.env
+.venv
+*.egg-info/
+*egg-info/
+site-packages/
+
+# --- Byte-compiled / cache ---
+*.egg
+.eggs/
+dist/
+build/
+*.manifest
+*.spec
+
+# --- Jupyter Notebooks ---
+.ipynb_checkpoints/
+
+# --- Data Files ---
+data/cleaned_poems.txt
+data/*.csv
+data/*.tsv
+data/*.xlsx
+data/*.json
+data/*.zip
+
+# --- Hugging Face / Transformers cache ---
+.cache/
+huggingface/
+~/.cache/huggingface/
+~/.cache/torch/
+
+# --- Model Files ---
+model/vansh_poet_model/
+*.bin
+*.safetensors
+*.pt
+
+# --- Logs and Outputs ---
+output/
+*.log
+*.out
+*.err
+
+# --- OS specific ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Misc ---
+*.bak
+*.swp
+*.swo
+*.old
+*.orig

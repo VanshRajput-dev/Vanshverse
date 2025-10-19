@@ -1,0 +1,9 @@
+MODEL_NAME = "gpt2-medium"
+DATA_PATH = "data/poems.txt"
+OUTPUT_DIR = "model/vansh_poet_model"
+BLOCK_SIZE = 128
+EPOCHS = 5
+BATCH_SIZE = 2
+LEARNING_RATE = 5e-5
+SAVE_STEPS = 500
+LOGGING_STEPS = 100
