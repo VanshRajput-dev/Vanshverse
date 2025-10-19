@@ -1,36 +1,20 @@
-from flask import Flask, render_template, request, jsonify
-from transformers import GPT2Tokenizer, GPT2LMHeadModel
-from utils.config import OUTPUT_DIR
-import torch
+from flask import Flask, request, jsonify
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
 app = Flask(__name__)
 
-tokenizer = GPT2Tokenizer.from_pretrained(OUTPUT_DIR)
-model = GPT2LMHeadModel.from_pretrained(OUTPUT_DIR)
-model.eval()
-
-@app.route('/')
-def home():
-    return render_template('index.html')
+model_path = "model/vansh_poet_model"
+tokenizer = GPT2Tokenizer.from_pretrained(model_path)
+model = GPT2LMHeadModel.from_pretrained(model_path)
 
 @app.route('/generate', methods=['POST'])
-def generate():
-    prompt = request.form['prompt']
-    input_ids = tokenizer.encode(prompt, return_tensors='pt')
+def generate_poem():
+    data = request.get_json()
+    prompt = data.get("prompt", "")
+    inputs = tokenizer.encode(prompt, return_tensors='pt')
+    outputs = model.generate(inputs, max_length=100, num_return_sequences=1)
+    poem = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    return jsonify({"generated_poem": poem})
 
-    with torch.no_grad():
-        output = model.generate(
-            input_ids,
-            max_length=150,
-            temperature=0.8,
-            top_k=50,
-            top_p=0.9,
-            do_sample=True,
-            pad_token_id=tokenizer.eos_token_id
-        )
-
-    poem = tokenizer.decode(output[0], skip_special_tokens=True)
-    return jsonify({'poem': poem})
-
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)

@@ -3,6 +3,8 @@ torch
 transformers==4.44.0
 datasets
 sentencepiece
+scikit-learn
+
 
 # Flask web app
 flask
@@ -10,4 +12,3 @@ flask
 # Optional but useful for debugging and notebooks
 tqdm
 ipykernel
-04560
