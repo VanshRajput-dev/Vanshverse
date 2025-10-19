@@ -1,15 +1,19 @@
-import sys, os
+import os
+import sys
+
+# Fix imports for project structure
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import os
+os.environ["TORCHDYNAMO_DISABLE"] = "1"
+
 from transformers import (
     GPT2Tokenizer,
     GPT2LMHeadModel,
     Trainer,
     TrainingArguments,
     DataCollatorForLanguageModeling,
-    TextDataset,
 )
+from datasets import load_dataset
 from utils.config import (
     MODEL_NAME,
     OUTPUT_DIR,
@@ -20,29 +24,42 @@ from utils.config import (
     SAVE_STEPS,
     LOGGING_STEPS,
 )
-from tqdm import tqdm
 
-def load_dataset(tokenizer, file_path="data/cleaned_poems.txt", block_size=BLOCK_SIZE):
-    print(f"📖 Loading dataset from {file_path} ...")
-    dataset = TextDataset(
-        tokenizer=tokenizer,
-        file_path=file_path,
-        block_size=block_size
-    )
-    print(f"📚 Loaded {len(dataset)} text chunks for training.")
-    return dataset
+def load_poems_dataset(tokenizer, file_path="data/cleaned_poems.txt", block_size=BLOCK_SIZE):
+    print(f"Loading dataset from {file_path}...")
+    dataset = load_dataset("text", data_files={"train": file_path})
+    print(f"Loaded {len(dataset['train'])} poems for training.")
+
+    def tokenize_function(examples):
+        return tokenizer(
+            examples["text"],
+            truncation=True,
+            padding="max_length",
+            max_length=block_size,
+        )
+
+    print("Tokenizing dataset...")
+    tokenized_datasets = dataset.map(tokenize_function, batched=True)
+    return tokenized_datasets["train"]
 
 def train_model():
-    print("🚀 Initializing tokenizer and model...")
+    print("Initializing tokenizer and model...")
     tokenizer = GPT2Tokenizer.from_pretrained(MODEL_NAME)
     model = GPT2LMHeadModel.from_pretrained(MODEL_NAME)
 
+    # Add special tokens for poem structure
     tokenizer.add_special_tokens({
         "additional_special_tokens": ["<|startofpoem|>", "<|endofpoem|>"]
     })
+
+    # Add a pad token (GPT-2 does not have one by default)
+    if tokenizer.pad_token is None:
+        tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+        model.config.pad_token_id = tokenizer.pad_token_id
+
     model.resize_token_embeddings(len(tokenizer))
 
-    train_dataset = load_dataset(tokenizer)
+    train_dataset = load_poems_dataset(tokenizer)
 
     data_collator = DataCollatorForLanguageModeling(
         tokenizer=tokenizer,
@@ -59,10 +76,9 @@ def train_model():
         save_total_limit=2,
         logging_steps=LOGGING_STEPS,
         prediction_loss_only=True,
-        report_to=None
     )
 
-    print("🧠 Starting training ...")
+    print("Starting fine-tuning...")
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -70,20 +86,15 @@ def train_model():
         train_dataset=train_dataset,
     )
 
-    total_steps = int(len(train_dataset) / BATCH_SIZE * EPOCHS)
-    print(f"🕒 Estimated total steps: {total_steps}")
+    try:
+        trainer.train()
+    except KeyboardInterrupt:
+        print("Training interrupted manually. Saving progress...")
 
-    # Wrap the Trainer's train() with tqdm for visual feedback
-    with tqdm(total=total_steps, desc="🚀 Training Progress", unit="step") as pbar:
-        for epoch in range(EPOCHS):
-            print(f"\n🌙 Epoch {epoch + 1}/{EPOCHS}")
-            trainer.train()
-            pbar.update(int(len(train_dataset) / BATCH_SIZE))
-
-    print("💾 Saving model and tokenizer...")
+    print("Saving model and tokenizer...")
     model.save_pretrained(OUTPUT_DIR)
     tokenizer.save_pretrained(OUTPUT_DIR)
-    print(f"✅ Model saved to {OUTPUT_DIR}")
+    print(f"Model saved successfully to {OUTPUT_DIR}")
 
 if __name__ == "__main__":
     train_model()

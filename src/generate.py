@@ -1,6 +1,10 @@
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import torch
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 from utils.config import OUTPUT_DIR
+
 
 def generate_poem(prompt, max_length=150, temperature=0.8, top_k=50, top_p=0.9):
     print("🎭 Loading trained VanshVerse model...")
